@@ -18,7 +18,6 @@ builder.Services.AddCors(options =>
                 "http://localhost:5173",
                 "https://borntobehor.github.io/"
             )
-            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
