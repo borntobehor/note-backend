@@ -2,6 +2,7 @@ using System.Text;
 using Backend.Data;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -16,7 +17,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:5173",
-                "https://borntobehor.github.io/"
+                "https://borntobehor.github.io"
             )
             .AllowAnyMethod()
             .AllowAnyHeader();
@@ -52,15 +53,36 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+else
+{
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            context.Response.Headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+            context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
+            context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization";
 
+            var errorResponse = new
+            {
+                result = false,
+                message = "Unexpected server error. Check application logs for details."
+            };
+
+            await context.Response.WriteAsJsonAsync(errorResponse);
+        });
+    });
+}
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowFrontend");
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
