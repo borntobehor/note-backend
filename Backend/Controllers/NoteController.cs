@@ -26,10 +26,14 @@ namespace Backend.Controllers
         {
             var userId = GetUserId();
             var userNotes = await _context.Notes.Where(n => n.userId == userId).ToListAsync();
-            Console.WriteLine(userNotes);
 
             // return Ok(await _context.Notes.ToListAsync());
-            return Ok(userNotes);
+            return Ok(new
+            {
+                result = true,
+                message = "Get all notes successfull",
+                data = userNotes
+            });
         }
 
         [HttpGet]
@@ -37,7 +41,12 @@ namespace Backend.Controllers
         public async Task<ActionResult<Note>> GetNoteById(int id)
         {
             var note = await _context.Notes.FindAsync(id);
-            return note == null ? NotFound() : Ok(note);
+            return note == null ? NotFound() : Ok(new
+            {
+                result = true,
+                message = "Get note successfull",
+                data = note
+            });
         }
 
         [HttpPost]
@@ -48,7 +57,12 @@ namespace Backend.Controllers
             newNote.userId = GetUserId();
             _context.Notes.Add(newNote);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetNoteById), new { id = newNote.id }, newNote);
+            return CreatedAtAction(nameof(GetNoteById), new { id = newNote.id }, new
+            {
+                result = true,
+                message = "Note created successfull",
+                data = newNote
+            });
         }
 
         [HttpPut]
@@ -66,7 +80,11 @@ namespace Backend.Controllers
             note.updatedAt = updatedNote.updatedAt;
 
             await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok(new
+            {
+                result = true,
+                message = "Note updated successfull"
+            });
         }
 
         [HttpDelete]
@@ -75,11 +93,19 @@ namespace Backend.Controllers
         {
             var note = await _context.Notes.FindAsync(id);
 
-            if (note is null) return NotFound();
+            if (note is null) return NotFound(new
+            {
+                result = false,
+                message = "Note not found"
+            });
             _context.Remove(note);
             await _context.SaveChangesAsync();
             
-            return NoContent();
+            return Ok(new
+            {
+                result = true,
+                message = "Note deleted successfull"
+            });
         }
     }
 
