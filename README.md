@@ -2,5 +2,6 @@
  
 **To run the project**
 ```shell
+cd ./Backend
 dotnet run
 ```
